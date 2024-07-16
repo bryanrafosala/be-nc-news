@@ -3,6 +3,7 @@ const {
   fetchEndPoints,
   fetchTopics,
   fetchArticlesByID,
+  fetchArticles
 } = require("./controller/app.controllers.js");
 
 const app = express();
@@ -12,6 +13,12 @@ app.get("/api", fetchEndPoints);
 app.get("/api/topics", fetchTopics);
 
 app.get("/api/articles/:article_id", fetchArticlesByID);
+
+app.get('/api/articles', fetchArticles);
+
+
+
+
 
 
 // 400 Error handler
