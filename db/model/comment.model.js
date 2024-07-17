@@ -8,3 +8,20 @@ exports.selectCommentsByArticleId = (article_id) => {
         return rows
     })
 }
+
+exports.addComment = (newComment, article_id) => {
+  const { body, username } = newComment;
+
+  const queryStr = `INSERT INTO comments (body, article_id, author)
+        VALUES ($1, $2, $3) RETURNING *;`;
+  const queryValues = [body, article_id, username];
+
+  return db.query(queryStr, queryValues).then(({ rows }) => {
+    if (!rows.length) {
+        return Promise.reject({ status:404, msg: "404: Not Found"})
+    } else {
+        return rows[0];
+    }
+
+  });
+};

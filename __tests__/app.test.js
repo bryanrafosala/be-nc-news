@@ -110,7 +110,7 @@ describe("GET /api/articles/:article_id", () => {
       .expect(400)
       .then(( body ) => {
         const message = body._body.msg
-        expect(message).toBe("Bad Request");
+        expect(message).toBe("400: Bad Request");
       });
   });
 });
@@ -194,7 +194,7 @@ describe("/api/articles/:article_id/comments", () => {
       .expect(400)
       .then(( body ) => {
         const message = body._body.msg
-        expect(message).toBe("Bad Request");
+        expect(message).toBe("400: Bad Request");
       });
   });
   test("GET 404: Returns correct error message if article id doesn't exist", () => {
@@ -204,6 +204,51 @@ describe("/api/articles/:article_id/comments", () => {
       .then((body) => {
         const message = body._body.msg
         expect(message).toBe("Article Not Found");
+      });
+  });
+});
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("POST 201: returns added comment for an article", () => {
+    const newComment = {
+      username: "butter_bridge",
+      body: "my first comment",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(newComment)
+      .expect(201)
+      .then((body) => {
+        expect(body._body.postedComment).toMatchObject({
+          author: "butter_bridge",
+          body: "my first comment",
+        });
+      });
+  });
+  test("POST 400: returns correct error message if passed a comment with incorrect keys", () => {
+    const newComment = {
+      username: "butter_bridge",
+      comment: "my second comment",
+    };
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(newComment)
+      .expect(400)
+      .then(( body ) => {
+        expect(body._body.msg).toBe("400: Bad Request");
+      });
+  });
+  test("POST 404: returns correct error message if passed a comment to an article that does not exist", () => {
+    const newComment = {
+      username: "butter_bridge",
+      body: "Hellooooo",
+    };
+    return request(app)
+      .post("/api/articles/9999/comments")
+      .send(newComment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("404: Not Found");
       });
   });
 });
