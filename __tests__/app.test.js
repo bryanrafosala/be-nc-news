@@ -59,7 +59,6 @@ describe("GET /api/articles/:article_id", () => {
       .expect(200)
       .then((body) => {
         const article = body._body.article;
-        console.log(article)
 
         const articleFormat = {
           article_id: expect.any(Number),
@@ -83,14 +82,15 @@ describe("GET /api/articles/:article_id", () => {
         const article = body._body.article;
         const articleFormat = {
           article_id: 1,
-          title: 'Living in the shadow of a great man',
-          topic: 'mitch',
-          author: 'butter_bridge',
-          body: 'I find this existence challenging',
-          created_at: '2020-07-09T20:11:00.000Z',
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
           votes: 100,
-          article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
-          comment_count: 11
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          comment_count: 11,
         };
 
         expect(article).toMatchObject(articleFormat);
@@ -108,8 +108,9 @@ describe("GET /api/articles/:article_id", () => {
     return request(app)
       .get("/api/articles/bananas")
       .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Bad Request");
+      .then(( body ) => {
+        const message = body._body.msg
+        expect(message).toBe("Bad Request");
       });
   });
 });
@@ -144,6 +145,65 @@ describe("/api/articles", () => {
       .then((body) => {
         const articles = body._body.article;
         expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+});
+
+describe("/api/articles/:article_id/comments", () => {
+  test("GET 200: Returns and array of comments with the specified article ID", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((body) => {
+        const comments = body._body.comments;
+        const commentFormat = {
+          comment_id: expect.any(Number),
+          body: expect.any(String),
+          article_id: 1,
+          author: expect.any(String),
+          votes: expect.any(Number),
+          created_at: expect.any(String),
+        };
+        comments.forEach((comment) => {
+          expect(comment).toMatchObject(commentFormat);
+          expect(comments.length).toBe(11);
+        });
+      });
+  });
+  test("GET 200: Returns with an array of comments with a decending order", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then((body) => {
+        const comments = body._body.comments;
+        expect(comments).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("GET 200: Returns with an empty array if the article does not have any comments", () => {
+    return request(app)
+      .get("/api/articles/11/comments")
+      .expect(200)
+      .then((body) => {
+        const comments = body._body.comments;
+        expect(comments).toEqual([]);
+      });
+  });
+  test("GET 400: Returns correct error message if passed an invalid article id", () => {
+    return request(app)
+      .get("/api/articles/bananas/comments")
+      .expect(400)
+      .then(( body ) => {
+        const message = body._body.msg
+        expect(message).toBe("Bad Request");
+      });
+  });
+  test("GET 404: Returns correct error message if article id doesn't exist", () => {
+    return request(app)
+      .get("/api/articles/9999/comments")
+      .expect(404)
+      .then((body) => {
+        const message = body._body.msg
+        expect(message).toBe("Article Not Found");
       });
   });
 });
