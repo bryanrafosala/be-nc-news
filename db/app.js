@@ -3,8 +3,14 @@ const {
   fetchEndPoints,
   fetchTopics,
   fetchArticlesByID,
-  fetchArticles
+  fetchArticles,
 } = require("./controller/app.controllers.js");
+
+const {
+  getCommentsByArticleId,
+} = require("./controller/comment.controller.js");
+
+
 
 const app = express();
 
@@ -14,12 +20,17 @@ app.get("/api/topics", fetchTopics);
 
 app.get("/api/articles/:article_id", fetchArticlesByID);
 
-app.get('/api/articles', fetchArticles);
+app.get("/api/articles", fetchArticles);
+
+// I know instead of 'fetch' its now 'get' - I was told by Kev this is wrong practice
+app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 
 
-
-
-
+// 404 Error handler
+app.all("*", (req, res, next) => {
+  res.status(404).send({ msg: "404: Not Found" });
+  next();
+});
 
 // 400 Error handler
 app.use((err, req, res, next) => {
@@ -29,12 +40,6 @@ app.use((err, req, res, next) => {
       next(err);
     }
   });
-
-// 404 Error handler
-app.all("*", (req, res, next) => {
-  res.status(404).send({ msg: "404: Not Found" });
-  next();
-});
 
 // Custom Error handler
 app.use((err, req, res, next) => {
