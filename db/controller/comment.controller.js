@@ -30,7 +30,18 @@ exports.postCommentByArticleId = (req, res, next) => {
       res.status(201).send({ postedComment });
     })
     .catch((err) => {
-      console.log(err)
       next(err)
     });
 };
+
+exports.patchArticle = (req, res, next) => {
+  const { article_id } = req.params;
+  const { inc_votes } = req.body;
+  return updateVotes(article_id, inc_votes)
+    .then((article) => {
+      res.status(200).send({ article });
+    })
+    .catch((err) => {
+      next(err);
+    });
+}

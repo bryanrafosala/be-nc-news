@@ -1,8 +1,11 @@
 const endpoints = require("../../endpoints.json");
 const db = require("../connection");
-const { getTopics, getArticlesById,
-    getArticles,
- } = require("../model/app.model");
+const {
+  getTopics,
+  getArticlesById,
+  getArticles,
+  updateVotes,
+} = require("../model/app.model");
 
 exports.fetchEndPoints = (req, res, next) => {
   res.status(200).send({ endpoints });
@@ -30,12 +33,24 @@ exports.fetchArticlesByID = (req, res, next) => {
 };
 
 exports.fetchArticles = (req, res, next) => {
-    const { topic, sort_by, order } = req.params;
-    getArticles(topic, sort_by, order)
-     .then((article)=>{
-        res.status(200).send({article})
-     })
-     .catch((err)=>{
-        next(err)
-     })
-}
+  const { topic, sort_by, order } = req.params;
+  getArticles(topic, sort_by, order)
+    .then((article) => {
+      res.status(200).send({ article });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.patchArticle = (req, res, next) => {
+  const { article_id } = req.params;
+  const { inc_votes } = req.body;
+  return updateVotes(article_id, inc_votes)
+    .then((article) => {
+      res.status(200).send({ article });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
