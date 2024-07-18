@@ -9,7 +9,8 @@ const {
 
 const {
   getCommentsByArticleId,
-  postCommentByArticleId
+  postCommentByArticleId,
+  deleteCommentById
 } = require("./controller/comment.controller.js");
 
 
@@ -23,13 +24,17 @@ app.get("/api", fetchEndPoints);
 app.get("/api/topics", fetchTopics);
 
 app.get("/api/articles/:article_id", fetchArticlesByID);
+
 app.get("/api/articles", fetchArticles);
 
-// I know instead of 'fetch' its now 'get' - I was told by Kev this is wrong practice
-
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
+
 app.post("/api/articles/:article_id/comments", postCommentByArticleId);
+
 app.patch("/api/articles/:article_id", patchArticle)
+
+app.delete("/api/comments/:comment_id", deleteCommentById)
+
 
 
 
