@@ -25,46 +25,63 @@ exports.getArticlesById = (article_id) => {
     }
   });
 };
-
-exports.getArticles = (topic, sort_by = "created_at", order = "desc") => {
+exports.getArticles = (topic, sortby = "created_at", order = "desc") => {
   const validSortBy = ["created_at", "comment_count", "votes"];
   const validOrder = ["asc", "desc"];
 
-  if (!validSortBy.includes(sort_by) || !validOrder.includes(order)) {
+  if (!validSortBy.includes(sortby) || !validOrder.includes(order)) {
     return Promise.reject({ status: 400, msg: "Bad Request" });
   }
-  let queryStr = `SELECT articles.title, 
-    articles.topic, 
-    articles.author, 
-    articles.created_at, 
-    articles.votes, 
-    articles.article_img_url, 
-    articles.article_id, 
-    CAST(COUNT(comments.body) AS INT) AS comment_count 
-    FROM articles
-    LEFT JOIN comments ON articles.article_id = comments.article_id `;
 
-  let queryValues = [];
+  let queryString = `
+    SELECT 
+      articles.article_id, 
+      articles.title, 
+      articles.topic, 
+      articles.author,
+      articles.created_at, 
+      articles.votes, 
+      articles.article_img_url,
+      COUNT(comments.article_id) :: INT AS comment_count 
+    FROM articles
+    LEFT JOIN comments 
+    ON comments.article_id = articles.article_id`;
+
+  const queryValues = [];
 
   if (topic) {
-    queryStr += `WHERE topic = $1 `;
+    queryString += ` WHERE articles.topic = $1`;
     queryValues.push(topic);
   }
 
-  queryStr += "GROUP BY articles.article_id ";
+  queryString += ` GROUP BY articles.article_id`;
 
-  if (sort_by === "comment_count") {
-    queryStr += `ORDER BY ${sort_by} ${order}`;
+  if (sortby) {
+    queryString += ` ORDER BY ${sortby} ${order}`;
   } else {
-    queryStr += ` ORDER BY articles.${sort_by} ${order} ;`;
+    queryString += ` ORDER BY articles.${sortby} ${order}`;
   }
-  return db.query(queryStr, queryValues).then(({ rows }) => {
-    if (!rows.length) {
-      return Promise.reject({ status: 404, msg: "No Articles Found" });
-    } else {
-      return rows;
-    }
-  });
+
+  return db.query(queryString, queryValues)
+    .then(({ rows }) => {
+      if (!rows.length) {
+        return Promise.reject({ status: 404, msg: "Not Found" });
+      } else {
+        return rows;
+      }
+    });
+};
+
+exports.ifQueryExist = (topic) => {
+  if (topic) {
+    return db
+      .query(`SELECT * FROM topics WHERE slug=$1`, [topic])
+      .then(({ rows }) => {
+        if (!rows.length) {
+          return Promise.reject({ status: 400, msg: "400: Bad Request" });
+        }
+      });
+  }
 };
 
 exports.checkIfArticleIdExists = (article_id) => {
@@ -80,7 +97,7 @@ exports.checkIfArticleIdExists = (article_id) => {
 exports.updateVotes = (article_id, inc_votes) => {
   return db
     .query(
-    `
+      `
     UPDATE articles
 		SET votes = votes + $1
 		WHERE article_id=$2
@@ -91,4 +108,4 @@ exports.updateVotes = (article_id, inc_votes) => {
     .then(({ rows }) => {
       return rows[0];
     });
-}
+};

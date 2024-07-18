@@ -1,10 +1,12 @@
-const endpoints = require("../../endpoints.json");
+  const endpoints = require("../../endpoints.json");
 const db = require("../connection");
+const { sort } = require("../data/test-data/articles");
 const {
   getTopics,
   getArticlesById,
   getArticles,
   updateVotes,
+  ifQueryExist,
 } = require("../model/app.model");
 
 exports.fetchEndPoints = (req, res, next) => {
@@ -32,16 +34,16 @@ exports.fetchArticlesByID = (req, res, next) => {
     });
 };
 
-exports.fetchArticles = (req, res, next) => {
-  const { topic, sort_by, order } = req.params;
-  getArticles(topic, sort_by, order)
-    .then((article) => {
-      res.status(200).send({ article });
+exports.fetchArticles = (req, res, next)  => {
+  const { topic } = req.query
+  Promise.all([getArticles(topic), ifQueryExist(topic)])
+    .then(([articles]) => {
+      return res.status(200).send({ articles });
     })
     .catch((err) => {
       next(err);
     });
-};
+}
 
 exports.patchArticle = (req, res, next) => {
   const { article_id } = req.params;

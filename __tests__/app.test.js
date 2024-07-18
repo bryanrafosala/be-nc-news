@@ -121,7 +121,7 @@ describe("/api/articles", () => {
       .get("/api/articles")
       .expect(200)
       .then((body) => {
-        const articles = body._body.article;
+        const articles = body._body.articles;
         const articleFormat = {
           author: expect.any(String),
           title: expect.any(String),
@@ -138,16 +138,56 @@ describe("/api/articles", () => {
         });
       });
   });
-  test("GET 200: Returns articles sorted by date in descending order", () => {
+
+  test("GET 200:  Returns an array of articles sorted by date in descending order", () => {
     return request(app)
-      .get("/api/articles")
+    .get("/api/articles?sort_by=created_at&order=desc")
+    .expect(200)
+    .then(({body: {articles}}) => {
+      expect(articles).toBeSortedBy("created_at", {descending: true})
+    })
+  })
+  test("GET 200: Returns with mitch's topic articles", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
       .expect(200)
-      .then((body) => {
-        const articles = body._body.article;
-        expect(articles).toBeSortedBy("created_at", { descending: true });
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(12);
+        articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+        });
+      });
+  });
+  test("GET 200: Returns only the topic of cats", () => {
+    return request(app)
+      .get("/api/articles?topic=cats")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(1);
+        articles.forEach((article) => { 
+          expect(article.topic).toBe("cats");
+        });
+      });
+  });
+  test("GET 400: Returns an error if the topic does not exist.", () => {
+    return request(app)
+      .get("/api/articles?topic=does-not-exist")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("400: Bad Request");
+      });
+  });
+  test("GET 404: Returns correct error message if passed topic with no articles", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Not Found");
       });
   });
 });
+
+
 
 describe("/api/articles/:article_id/comments", () => {
   test("GET 200: Returns and array of comments with the specified article ID", () => {
@@ -367,15 +407,12 @@ describe("GET /api/users", () => {
         const usersFormat = {
           username: expect.any(String),
           name: expect.any(String),
-          avatar_url: expect.any(String)
-        }
+          avatar_url: expect.any(String),
+        };
         expect(users.length).toBe(4);
         users.forEach((user) => {
-          expect(user).toEqual(
-            expect.objectContaining(usersFormat)
-          );
+          expect(user).toEqual(expect.objectContaining(usersFormat));
         });
       });
   });
 });
-
