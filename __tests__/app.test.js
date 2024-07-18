@@ -108,8 +108,8 @@ describe("GET /api/articles/:article_id", () => {
     return request(app)
       .get("/api/articles/bananas")
       .expect(400)
-      .then(( body ) => {
-        const message = body._body.msg
+      .then((body) => {
+        const message = body._body.msg;
         expect(message).toBe("400: Bad Request");
       });
   });
@@ -192,8 +192,8 @@ describe("/api/articles/:article_id/comments", () => {
     return request(app)
       .get("/api/articles/bananas/comments")
       .expect(400)
-      .then(( body ) => {
-        const message = body._body.msg
+      .then((body) => {
+        const message = body._body.msg;
         expect(message).toBe("400: Bad Request");
       });
   });
@@ -202,14 +202,14 @@ describe("/api/articles/:article_id/comments", () => {
       .get("/api/articles/9999/comments")
       .expect(404)
       .then((body) => {
-        const message = body._body.msg
+        const message = body._body.msg;
         expect(message).toBe("Article Not Found");
       });
   });
 });
 
 describe("POST /api/articles/:article_id/comments", () => {
-  test("POST 201: returns added comment for an article", () => {
+  test("POST 201: Returns added comment for an article", () => {
     const newComment = {
       username: "butter_bridge",
       body: "my first comment",
@@ -225,7 +225,7 @@ describe("POST /api/articles/:article_id/comments", () => {
         });
       });
   });
-  test("POST 400: returns correct error message if passed a comment with incorrect keys", () => {
+  test("POST 400: Returns correct error message if passed a comment with incorrect keys", () => {
     const newComment = {
       username: "butter_bridge",
       comment: "my second comment",
@@ -234,14 +234,14 @@ describe("POST /api/articles/:article_id/comments", () => {
       .post("/api/articles/1/comments")
       .send(newComment)
       .expect(400)
-      .then(( body ) => {
+      .then((body) => {
         expect(body._body.msg).toBe("400: Bad Request");
       });
   });
-  test("POST 404: returns correct error message if passed a comment to an article that does not exist", () => {
+  test("POST 404: Returns correct error message if passed a comment to an article that does not exist", () => {
     const newComment = {
       username: "butter_bridge",
-      body: "Hellooooo",
+      body: "my third comment",
     };
     return request(app)
       .post("/api/articles/9999/comments")
@@ -249,6 +249,90 @@ describe("POST /api/articles/:article_id/comments", () => {
       .expect(404)
       .then(({ body }) => {
         expect(body.msg).toBe("404: Not Found");
+      });
+  });
+  test("POST 404: Returns a 404 if the username does not exist", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        username: "bryan",
+        body: "bryan's first comment",
+      })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("404: Not Found");
+      });
+  });
+});
+
+describe("PATCH 200: /api/articles/:article_id", () => {
+  test("PATCH 200: Returns the article with the correct number of votes when increased.", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body }) => {
+        const { article } = body;
+        const articleFormat = {
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 101,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        };
+        expect(article).toMatchObject(articleFormat);
+      });
+  });
+  test("PATCH 200: Returns the article with the correct number of votes when decreased.", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: -99 })
+      .expect(200)
+      .then(({ body }) => {
+        const { article } = body;
+        console.log(article)
+        const articleFormat = {
+          article_id: 1,
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 1,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+        };
+        expect(article).toMatchObject(articleFormat);
+      });
+  });
+  test("PATCH 400: Returns a 400 with an invalid id ", () => {
+    return request(app)
+      .get("/api/articles/one")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("400: Bad Request");
+      });
+  });
+
+  test("PATCH 400: Patch object is formatted incorrectly", () => {
+    return request(app)
+      .patch("/api/articles/3")
+      .send({ notVotes: 1 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("400: Bad Request");
+      });
+  });
+  test("PATCH 404: Valid but non-existent id", () => {
+    return request(app)
+      .get("/api/articles/777")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toEqual("No Article Found");
       });
   });
 });
