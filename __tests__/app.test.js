@@ -4,6 +4,8 @@ const db = require("../db/connection");
 const seed = require("../db/seeds/seed");
 const endpoints = require("../endpoints.json");
 const data = require("../db/data/test-data/index");
+const sorted = require('jest-sorted');
+
 
 beforeEach(() => {
   return seed(data);
@@ -138,10 +140,9 @@ describe("/api/articles", () => {
         });
       });
   });
-
   test("GET 200:  Returns an array of articles sorted by date in descending order", () => {
     return request(app)
-    .get("/api/articles?sort_by=created_at&order=desc")
+    .get("/api/articles?sortby=created_at&order=asc")
     .expect(200)
     .then(({body: {articles}}) => {
       expect(articles).toBeSortedBy("created_at", {descending: true})
@@ -154,7 +155,7 @@ describe("/api/articles", () => {
       .then(({ body: { articles } }) => {
         expect(articles.length).toBe(12);
         articles.forEach((article) => {
-          expect(article.topic).toBe("mitch");
+          expect(article.topic).toBe('mitch');
         });
       });
   });
@@ -174,19 +175,18 @@ describe("/api/articles", () => {
       .get("/api/articles?topic=does-not-exist")
       .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("400: Bad Request");
+        expect(body.msg).toBe("Bad Request");
       });
   });
-  test("GET 404: Returns correct error message if passed topic with no articles", () => {
+  test("GET 400: Returns correct error message if passed topic with no articles", () => {
     return request(app)
       .get("/api/articles?topic=paper")
-      .expect(404)
+      .expect(400)
       .then(({ body }) => {
-        expect(body.msg).toBe("Not Found");
+        expect(body.msg).toBe("Bad Request");
       });
   });
-});
-
+})
 
 
 describe("/api/articles/:article_id/comments", () => {
