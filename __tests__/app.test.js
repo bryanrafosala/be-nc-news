@@ -224,24 +224,6 @@ describe("/api/articles", () => {
   });
 });
 
-/*
-
-const articles = body._body.articles;
-        const articleFormat = {
-          author: expect.any(String),
-          title: expect.any(String),
-          article_id: expect.any(Number),
-          topic: expect.any(String),
-          created_at: expect.any(String),
-          votes: expect.any(Number),
-          article_img_url: expect.any(String),
-          comment_count: expect.any(Number),
-        };
-        articles.forEach((article) => {
-          expect(article).toMatchObject(articleFormat);
-          expect(articles.length).toBe(13);
-
-*/
 
 describe("/api/articles/:article_id/comments", () => {
   test("GET 200: Returns and array of comments with the specified article ID", () => {
