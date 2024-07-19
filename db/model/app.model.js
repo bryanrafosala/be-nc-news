@@ -15,7 +15,7 @@ exports.getArticlesById = (article_id) => {
       GROUP BY articles.article_id
       HAVING articles.article_id = $1`;
 
-  const queryValues = [article_id];
+  let queryValues = [article_id];
 
   return db.query(queryStr, queryValues).then((result) => {
     if (result.rows.length === 0) {
@@ -25,51 +25,64 @@ exports.getArticlesById = (article_id) => {
     }
   });
 };
-exports.getArticles = (topic, sortby = "created_at", order = "desc") => {
-  const validSortBy = ["created_at", "comment_count", "votes"];
-  const validOrder = ["asc", "desc"];
+
+
+
+exports.getArticles = (topic, sortby = "created_at", order = "DESC") => {
+  const validSortBy = [
+    "article_id",
+    "title",
+    "topic",
+    "author",
+    "votes",
+    "created_at",
+    "article_img_url",
+    "comment_count",
+  ];
+  const validOrder = ["asc", "desc", "ASC", "DESC"];
+  const validTopics = ["mitch", "cats", "coding","slugs"];
 
   if (!validSortBy.includes(sortby) || !validOrder.includes(order)) {
     return Promise.reject({ status: 400, msg: "Bad Request" });
   }
-
   let queryString = `
-    SELECT 
-      articles.article_id, 
-      articles.title, 
-      articles.topic, 
-      articles.author,
-      articles.created_at, 
-      articles.votes, 
-      articles.article_img_url,
-      COUNT(comments.article_id) :: INT AS comment_count 
+    SELECT articles.article_id, 
+    articles.title, 
+    articles.topic, 
+    articles.author,
+    articles.created_at, 
+    articles.votes, 
+    articles.article_img_url,
+    COUNT(comments.article_id) :: INT AS comment_count 
     FROM articles
     LEFT JOIN comments 
-    ON comments.article_id = articles.article_id`;
-
-  const queryValues = [];
+    ON comments.article_id = articles.article_id`
 
   if (topic) {
-    queryString += ` WHERE articles.topic = $1`;
-    queryValues.push(topic);
+    if (!validTopics.includes(topic)) {
+      return Promise.reject({ status: 400, msg: "Bad Request" });
+    }
+    queryString += ` WHERE articles.topic='${topic}'`;
   }
 
-  queryString += ` GROUP BY articles.article_id`;
+    queryString += 
+    ` GROUP BY  articles.article_id,
+    articles.title,
+    articles.topic,
+    articles.author,
+    articles.created_at,
+    articles.votes,
+    articles.article_img_url ORDER BY articles.${sortby} ${order};`;
+    
+    console.log(queryString)
 
-  if (sortby) {
-    queryString += ` ORDER BY ${sortby} ${order}`;
-  } else {
-    queryString += ` ORDER BY articles.${sortby} ${order}`;
-  }
-
-  return db.query(queryString, queryValues)
-    .then(({ rows }) => {
-      if (!rows.length) {
-        return Promise.reject({ status: 404, msg: "Not Found" });
-      } else {
-        return rows;
-      }
-    });
+  return db.query(queryString).then(({ rows }) => {
+    if (!rows.length) {
+      return Promise.reject({ status: 404, msg: "Not Found" });
+    } else {
+      return rows;
+    }
+  });
 };
 
 exports.ifQueryExist = (topic) => {
