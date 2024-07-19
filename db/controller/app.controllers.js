@@ -1,4 +1,4 @@
-  const endpoints = require("../../endpoints.json");
+const endpoints = require("../../endpoints.json");
 const db = require("../connection");
 const { sort } = require("../data/test-data/articles");
 const {
@@ -34,8 +34,8 @@ exports.fetchArticlesByID = (req, res, next) => {
     });
 };
 
-exports.fetchArticles = (req, res, next)  => {
-  const { topic } = req.query
+exports.fetchArticles = (req, res, next) => {
+  const { topic } = req.query;
   Promise.all([getArticles(topic), ifQueryExist(topic)])
     .then(([articles]) => {
       return res.status(200).send({ articles });
@@ -43,7 +43,7 @@ exports.fetchArticles = (req, res, next)  => {
     .catch((err) => {
       next(err);
     });
-}
+};
 
 exports.patchArticle = (req, res, next) => {
   const { article_id } = req.params;

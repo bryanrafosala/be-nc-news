@@ -4,8 +4,7 @@ const db = require("../db/connection");
 const seed = require("../db/seeds/seed");
 const endpoints = require("../endpoints.json");
 const data = require("../db/data/test-data/index");
-const sorted = require('jest-sorted');
-
+const sorted = require("jest-sorted");
 
 beforeEach(() => {
   return seed(data);
@@ -142,12 +141,12 @@ describe("/api/articles", () => {
   });
   test("GET 200:  Returns an array of articles sorted by date in descending order", () => {
     return request(app)
-    .get("/api/articles?sortby=created_at&order=asc")
-    .expect(200)
-    .then(({body: {articles}}) => {
-      expect(articles).toBeSortedBy("created_at", {descending: true})
-    })
-  })
+      .get("/api/articles?sortby=created_at&order=DESC")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
   test("GET 200: Returns with mitch's topic articles", () => {
     return request(app)
       .get("/api/articles?topic=mitch")
@@ -155,7 +154,7 @@ describe("/api/articles", () => {
       .then(({ body: { articles } }) => {
         expect(articles.length).toBe(12);
         articles.forEach((article) => {
-          expect(article.topic).toBe('mitch');
+          expect(article.topic).toBe("mitch");
         });
       });
   });
@@ -165,8 +164,19 @@ describe("/api/articles", () => {
       .expect(200)
       .then(({ body: { articles } }) => {
         expect(articles.length).toBe(1);
-        articles.forEach((article) => { 
+        articles.forEach((article) => {
           expect(article.topic).toBe("cats");
+        });
+      });
+  });
+  test("GET 200: Recieves no error, when passed with a topic with no article.", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(0);
+        articles.forEach((article) => {
+          expect(article.topic).toBe("paper");
         });
       });
   });
@@ -178,16 +188,60 @@ describe("/api/articles", () => {
         expect(body.msg).toBe("Bad Request");
       });
   });
-  test("GET 400: Returns correct error message if passed topic with no articles", () => {
+  test("GET 200: Returns only the comment count of cats", () => {
     return request(app)
-      .get("/api/articles?topic=paper")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Bad Request");
+      .get("/api/articles?topic=cats")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(1);
+        articles.forEach((article) => {
+          expect(article.comment_count).toBe(2);
+        });
       });
   });
-})
+  test("GET 200: Returns with mitch's topic articles and comment count.", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
 
+      .then(({ body: { articles } }) => {
+        const articleFormat = {
+          author: expect.any(String),
+          title: expect.any(String),
+          article_id: expect.any(Number),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+        };
+        expect(articles.length).toBe(12);
+        articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+          expect(article.comment_count).toEqual(expect.any(Number));
+          expect(article).toMatchObject(articleFormat);
+        });
+      });
+  });
+});
+
+/*
+
+const articles = body._body.articles;
+        const articleFormat = {
+          author: expect.any(String),
+          title: expect.any(String),
+          article_id: expect.any(Number),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+          comment_count: expect.any(Number),
+        };
+        articles.forEach((article) => {
+          expect(article).toMatchObject(articleFormat);
+          expect(articles.length).toBe(13);
+
+*/
 
 describe("/api/articles/:article_id/comments", () => {
   test("GET 200: Returns and array of comments with the specified article ID", () => {
