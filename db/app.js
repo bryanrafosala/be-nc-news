@@ -5,7 +5,7 @@ const {
   fetchArticlesByID,
   fetchArticles,
   patchArticle
-} = require("./controller/app.controllers.js");
+} = require("./controller/article.controllers.js");
 
 const {
   getCommentsByArticleId,

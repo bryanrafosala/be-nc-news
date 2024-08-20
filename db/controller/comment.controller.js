@@ -1,4 +1,4 @@
-const { checkIfArticleIdExists } = require("../model/app.model");
+const { checkIfArticleIdExists } = require("../model/article.model");
 const {
   selectCommentsByArticleId,
   addComment,

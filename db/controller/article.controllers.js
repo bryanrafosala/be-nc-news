@@ -7,7 +7,7 @@ const {
   getArticles,
   updateVotes,
   ifQueryExist,
-} = require("../model/app.model");
+} = require("../model/article.model");
 
 exports.fetchEndPoints = (req, res, next) => {
   res.status(200).send({ endpoints });
