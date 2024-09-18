@@ -29,7 +29,7 @@ echo "PGDATABASE=nc_news_test" > .env.test
 echo "PGDATABASE=nc_news" > .env.development
 ```
 
-4. Setup and seed local databases
+4. Setup and seed local database
 
 ```
 npm run setup-dbs
